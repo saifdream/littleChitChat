@@ -37,7 +37,7 @@ function ChatStack() {
           ),
         }}
       />
-      <Stack.Screen name='Chat sRoom' component={ChatRoom} />
+      <Stack.Screen name='ChatRoom' component={ChatRoom} />
     </Stack.Navigator>
   );
 }

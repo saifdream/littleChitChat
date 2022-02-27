@@ -1,9 +1,8 @@
 import React,{Component} from 'react';
 import { View,Text,StyleSheet,TouchableOpacity,TextInput,ScrollView } from 'react-native';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, getRedirectResult, FacebookAuthProvider } from 'firebase/auth';
-import { doc, getDoc, collection, setDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import { auth, database } from '../config/firebase';
-
 
 export default class Login extends Component{
     constructor(){
@@ -35,18 +34,18 @@ export default class Login extends Component{
         signInWithEmailAndPassword(auth, this.state.email, this.state.password)
           .then((res) => {
                 console.log('Login success');
-                getDoc(doc(database, "chat_users", this.state.email)).then(docSnap => {
-                    if (docSnap.exists()) {
-                        console.log("Document data:", docSnap.data());
-                    } else {
-                        console.log("No such document!");
-                        const usersRef = collection(database, "chat_users");
-                        setDoc(doc(usersRef, this.state.email), {
-                            email: this.state.email,
-                            created_at: new Date()
-                        });
-                    }
-                });
+                // getDoc(doc(database, "chat_users", this.state.email)).then(docSnap => {
+                //     if (docSnap.exists()) {
+                //         console.log("Document data:", docSnap.data());
+                //     } else {
+                //         console.log("No such document!");
+                //         const usersRef = collection(database, "chat_users");
+                //         setDoc(doc(usersRef, this.state.email), {
+                //             email: this.state.email,
+                //             created_at: new Date()
+                //         });
+                //     }
+                // });
           })
           .catch(err => alert(`Login err: ${err}`));
       }
@@ -71,13 +70,15 @@ export default class Login extends Component{
         
         const user = result.user;
         // console.log(user);
-        getDoc(doc(database, "chat_users", user.email)).then(docSnap => {
+        getDoc(doc(database, "users", user.uid)).then(docSnap => {
             if (docSnap.exists()) {
                 console.log("Document data:", docSnap.data());
             } else {
                 console.log("No such document!");
-                const usersRef = collection(database, "chat_users");
-                setDoc(doc(usersRef, user.email), {
+                addDoc(collection(database, "users"), {
+                    uid: user.uid,
+                    name: user.displayName,
+                    authProvider: "google",
                     email: user.email,
                     created_at: new Date()
                 });
@@ -104,23 +105,41 @@ export default class Login extends Component{
         const token = credential.accessToken;
         // The signed-in user info.
         const user = result.user;
-
-        // console.log(user);
-
-        getDoc(doc(database, "chat_users", user.email)).then(docSnap => {
+        console.log(user);
+        getDoc(doc(database, "users", user.uid)).then(docSnap => {
             if (docSnap.exists()) {
                 console.log("Document data:", docSnap.data());
             } else {
                 console.log("No such document!");
                 const usersRef = collection(database, "chat_users");
-                setDoc(doc(usersRef, user.email), {
+                // setDoc(doc(usersRef, user.email), {
+                //     email: user.email,
+                //     created_at: new Date()
+                // });
+                addDoc(collection(database, "users"), {
+                    uid: user.uid,
+                    name: user.displayName,
+                    authProvider: "google",
                     email: user.email,
                     created_at: new Date()
                 });
             }
         });
-        // ...
+
+        // const user = res.user;
+        // const q = query(collection(database, "users"), where("uid", "==", user.uid));
+        // const docs = getDocs(q);
+        // console.log(docs.length)
+        // if (docs.length === 0) {
+        //     addDoc(collection(database, "users"), {
+        //         uid: user.uid,
+        //         name: user.displayName,
+        //         authProvider: "google",
+        //         email: user.email,
+        //     });
+        // }
       }).catch((error) => {
+          console.log(error)
         // Handle Errors here.
         const errorCode = error.code;
         const errorMessage = error.message;

@@ -9,6 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -41,10 +42,11 @@ export default class Chat extends Component {
     }
   }
 
-  componentWillMount= async ()=> {
+  UNSAFE_componentWillMount= async ()=> {
       const q = query(collection(database, "chats"), orderBy('created_at', 'asc')); // , where("u_id", "==", this.props.route.params.uemail+"")
       this.unsubscribe = onSnapshot(q, (querySnapshot) => {
         let chats = querySnapshot.docs.map(doc => ({
+          _id: doc.data()._id,
           timestamp: Date(doc.data().created_at),
           femail: doc.data().f_email,
           fid: doc.data().f_id,
@@ -55,13 +57,13 @@ export default class Chat extends Component {
           }
         }));
         this.setState({chatData: chats});
-        console.log(chats);
+        // console.log(chats);
       });
 
       this.retrieveData();
   }
 
-  componentWillUnmount() {
+  UNSAFE_componentWillUnmount() {
     this.unsubscribe();
   }
 
@@ -118,7 +120,7 @@ export default class Chat extends Component {
                       maxWidth: 500,
                       padding: 15,
                       borderRadius: 20,
-                      }}>  
+                      }} key={c_data._id}>  
                     <Text style={{fontSize:16,color:"#000" }}> {c_data.text}</Text>
                     </View>
                   )
@@ -133,7 +135,7 @@ export default class Chat extends Component {
                       maxWidth: 500,
                       padding: 15,
                       borderRadius: 20,
-                      }}>             
+                      }} key={c_data._id}>             
                           <Text style={{fontSize:16,color:"#000" }}> {c_data.text}</Text>
                     </View>
                   )

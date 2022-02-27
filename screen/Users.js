@@ -3,11 +3,11 @@ import {
     StyleSheet,
     Text,
     View,
-    Image,
     TouchableOpacity,
     ScrollView,
     Dimensions,
   } from 'react-native';
+
 const screenWidth = Math.round(Dimensions.get('window').width);
 
 import {
@@ -15,10 +15,8 @@ import {
   query,
   onSnapshot, where,
 } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
 
 import { auth, database } from '../config/firebase';
-
 
 export default class Users extends Component {
   constructor(){
@@ -30,7 +28,8 @@ export default class Users extends Component {
       uemail:''
     }
   }
-  componentWillMount=()=>{
+
+  UNSAFE_componentWillMount=()=>{
     this._retrieveData()  
     this.getUserData()
   }
@@ -47,7 +46,7 @@ export default class Users extends Component {
        })
     }
 
-  componentDidMount=()=>{
+  UNSAFE_componentDidMount=()=>{
     console.log(
       'uid2=> '+this.state.uid+
       '  username2=> '+this.state.uname+
@@ -57,17 +56,19 @@ export default class Users extends Component {
 
 
   getUserData=()=>{
-    const q = query(collection(database, "chat_users"), where("email", "!=", auth?.currentUser?.email+""));
+    const q = query(collection(database, "users"), where("email", "!=", auth?.currentUser?.email+""));
     this.unsubscribe = onSnapshot(q, (querySnapshot) => {
       let users = querySnapshot.docs.map(doc => ({
+        uid: doc.data().uid,
         email: doc.data().email,
+        name: doc.data().name,
       }));
 
       this.setState({chat_users: users});
     });
   }
 
-  componentWillUnmount() {
+  UNSAFE_componentWillUnmount() {
     this.unsubscribe();
   }
 
@@ -76,7 +77,7 @@ export default class Users extends Component {
     let Data=this.state.chat_users
     let User=Data.map((u_data)=>{
         return(
-          <View style={styles.backarrow} key={u_data.email}>
+          <View style={styles.backarrow} key={u_data.uid}>
               <TouchableOpacity onPress={()=> this.props.navigation.navigate('ChatRoom',{
                     uemail:this.state.uemail,
                     uid:this.state.uid,
@@ -113,7 +114,8 @@ const styles = StyleSheet.create({
    paddingTop: 22
   },
   backarrow: {
-    paddingBottom: 15,
+    padding: 15,
+    marginBottom: 5,
     flexDirection: 'row',
     backgroundColor: '#e9f7f7'
   },
